@@ -96,4 +96,4 @@ client.delete_bucket('test-bucket')
 
 ---
 
-**Feel free to contribute or open
+**Feel free to contribute or open issues for enhancements and bugs. Let's improve S3 testing together!**
