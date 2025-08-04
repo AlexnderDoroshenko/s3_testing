@@ -28,8 +28,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Wait for MinIO
         run: |
-          for i in {1..30}; do
-            nc -z localhost 9000 && break
+          for i in {1..60}; do
+            curl -f http://localhost:9000/minio/health/live && break
             sleep 1
           done
       - name: Run tests
