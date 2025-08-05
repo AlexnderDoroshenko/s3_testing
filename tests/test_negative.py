@@ -1,0 +1,59 @@
+import pytest
+from botocore.exceptions import ClientError
+
+
+def test_delete_nonexistent_object(s3_client, temp_bucket):
+    """
+    Attempt to delete a non-existent object from S3.
+    Expects a ClientError with NoSuchKey or 404 error code.
+    """
+    with pytest.raises(ClientError) as e:
+        s3_client.delete_object(temp_bucket, "missing.txt")
+    assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
+        f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
+    )
+
+def test_invalid_credentials(tmp_path):
+    """
+    Attempt to list buckets with invalid credentials.
+    Expects a ClientError due to authentication failure.
+    """
+    from s3_client import S3Client
+    bad_client = S3Client(
+        endpoint_url='http://localhost:9000',
+        access_key='wrong',
+        secret_key='wrong'
+    )
+    with pytest.raises(ClientError, match="InvalidAccessKeyId|SignatureDoesNotMatch"):
+        bad_client.list_buckets()
+
+def test_get_nonexistent_object(s3_client, temp_bucket):
+    """
+    Attempt to get a non-existent object from S3.
+    Expects a ClientError with NoSuchKey or 404 error code.
+    """
+    with pytest.raises(ClientError) as e:
+        s3_client.get_object(temp_bucket, "missing.txt")
+    assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
+        f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
+    )
+
+def test_download_nonexistent_object(s3_client, temp_bucket, tmp_path):
+    """
+    Attempt to download a non-existent object from S3.
+    Expects a ClientError with NoSuchKey or 404 error code.
+    """
+    download_path = tmp_path / "should_not_exist.txt"
+    with pytest.raises(ClientError) as e:
+        s3_client.download_file(temp_bucket, "missing.txt", str(download_path))
+    assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
+        f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
+    )
+
+def test_create_bucket_invalid_name(s3_client):
+    """
+    Attempt to create a bucket with an invalid name.
+    Expects a ClientError due to invalid bucket name.
+    """
+    with pytest.raises(ClientError, match="InvalidBucketName|InvalidBucket"):
+        s3_client.create_bucket("Invalid_Bucket_Name!")

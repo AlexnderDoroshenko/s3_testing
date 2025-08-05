@@ -9,39 +9,74 @@ on:
 jobs:
  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.10', '3.11' ]
+        minio-version: [ 'RELEASE.2025-01-15T03-21-40Z' ]
+    env:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      MINIO_HOST_NAME: localhost
+      MINIO_HOST_PORT: 9000
+      MINIO_IMAGE: quay.io/minio/minio:${{ matrix.minio-version }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Start MinIO
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: minio123
         run: |
           docker run -d --name minio \
-            -e MINIO_ROOT_USER=minio \
-            -e MINIO_ROOT_PASSWORD=minio123 \
-            -p 9000:9000 -p 9001:9001 \
-            quay.io/minio/minio server /data --console-address ":9001"
+            -e MINIO_ROOT_USER=$MINIO_ROOT_USER \
+            -e MINIO_ROOT_PASSWORD=$MINIO_ROOT_PASSWORD \
+            -p $MINIO_HOST_PORT:$MINIO_HOST_PORT -p 9001:9001 \
+            $MINIO_IMAGE server /data --console-address ":9001"
       - name: Wait for MinIO
         run: |
           for i in {1..90}; do
-            if curl -f http://localhost:9000/minio/health/live; then
+            if curl -f http://$MINIO_HOST_NAME:$MINIO_HOST_PORT/minio/health/live; then
               exit 0
             fi
             sleep 1
           done
           echo "MinIO is not available, skipping tests."
-          exit 78
+          docker logs minio
+          exit 1
       - name: Run tests
         if: ${{ success() }}
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: minio123
-          MINIO_HOST_NAME: localhost
-          MINIO_HOST_PORT: 9000
-        run: pytest
+        run: |
+          pytest \
+            --maxfail=1 \
+            --disable-warnings \
+            --color=yes \
+            --html=report.html \
+            --self-contained-html \
+            --cov=s3_testing \
+            --cov-report=term-missing \
+            --cov-report=xml
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: report.html
+          retention-days: 5
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 5
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # for non-public repo
+          files: coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
+
+      - name: Stop MinIO
+        if: always()
+        run: docker stop minio && docker rm minio

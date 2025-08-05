@@ -1,4 +1,9 @@
+
 # S3 Testing Project
+
+[![CI](https://github.com/AlexnderDoroshenko/s3_testing/actions/workflows/ci.yml/badge.svg)](https://github.com/AlexnderDoroshenko/s3_testing/actions/workflows/ci.yml)
+
+[![codecov](https://codecov.io/gh/AlexnderDoroshenko/s3_testing/branch/main/graph/badge.svg)](https://codecov.io/gh/AlexnderDoroshenko/s3_testing)
 
 This project provides a simple Python client for working with S3-compatible storage (such as MinIO), along with automated tests and containerized setup for local development and CI.
 
@@ -15,8 +20,14 @@ This project provides a simple Python client for working with S3-compatible stor
 s3_testing/
 ├── s3_client.py         # S3 client implementation
 ├── conftest.py          # Pytest fixture for S3 client
+├── utils/                 
+│   ├── file_utils.py      # File generation, MD5 calculation, test data preparation
+│   └── s3_utils.py        # Helpers for repetitive actions with S3 (bucket cleanup, bulk upload)
 ├── tests/
-│   └── test_s3_client.py  # Unit tests for S3 client methods
+│   ├── test_basic_crud.py # Basic tests (create/list/delete)
+│   ├── test_integrity.py # Integrity tests, large files
+│   ├── test_concurrency.py # Parallel loading, stress
+│   └── test_negative.py # Negative cases (invalid credentials, no-such-key)
 ├── requirements.txt     # Python dependencies
 ├── Dockerfile           # Container for running tests
 ├── docker-compose.yml   # Compose file for MinIO + pytest service
