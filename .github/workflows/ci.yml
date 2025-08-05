@@ -75,7 +75,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }} # for non-public repo
           files: coverage.xml
           flags: unittests
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Stop MinIO
         if: always()
