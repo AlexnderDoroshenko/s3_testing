@@ -1,5 +1,5 @@
 import concurrent.futures
-from utils.file_utils import create_file
+from s3_testing.utils.file_utils import create_file
 
 
 def test_parallel_uploads(s3_client, temp_bucket, tmp_path):

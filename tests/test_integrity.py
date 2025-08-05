@@ -1,4 +1,4 @@
-from utils.file_utils import create_file, md5sum
+from s3_testing.utils.file_utils import create_file, md5sum
 
 
 def test_large_file_integrity(s3_client, temp_bucket, tmp_path):

@@ -1,6 +1,3 @@
-import os
-import pytest
-
 
 BUCKET = "test-bucket"
 OBJECT = "test-object.txt"

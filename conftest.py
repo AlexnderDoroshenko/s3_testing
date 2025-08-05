@@ -1,7 +1,8 @@
 import pytest
-from s3_testing import S3Client
 from os import environ
-from utils.s3_utils import cleanup_bucket
+
+from s3_testing.s3_client import S3Client
+from s3_testing.utils.s3_utils import cleanup_bucket
 
 
 @pytest.fixture(scope="session")
