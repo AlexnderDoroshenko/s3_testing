@@ -34,7 +34,7 @@ def test_invalid_credentials(tmp_path):
     Attempt to list buckets with invalid credentials.
     Expects a ClientError due to authentication failure.
     """
-    from s3_client import S3Client
+    from s3_testing.s3_client import S3Client
     bad_client = S3Client(
         endpoint_url='http://localhost:9000',
         access_key='wrong',
