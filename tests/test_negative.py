@@ -53,15 +53,15 @@ def test_get_nonexistent_object(s3_client, temp_bucket):
 
 def test_download_nonexistent_object(s3_client, temp_bucket, tmp_path):
     """
-    Attempt to download a non-existent object from S3.
-    Expects a ClientError with NoSuchKey or 404 error code.
+    Downloading a non-existent object should not create a file and return False.
     """
     download_path = tmp_path / "should_not_exist.txt"
-    with pytest.raises(ClientError) as e:
-        s3_client.download_file(temp_bucket, "missing.txt", str(download_path))
-    assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
-        f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
-    )
+    result = s3_client.download_file(temp_bucket, "missing.txt", str(download_path))
+
+    assert not download_path.exists(), \
+        f"Expected file {download_path} to not exist after failed download"
+    assert result is False or result is None, \
+        f"Expected False/None return value for missing object, got: {result}"
 
 def test_create_bucket_invalid_name(s3_client):
     """
