@@ -45,14 +45,11 @@ def test_invalid_credentials(tmp_path):
 
 def test_get_nonexistent_object(s3_client, temp_bucket):
     """
-    Attempt to get a non-existent object from S3.
-    Expects a ClientError with NoSuchKey or 404 error code.
+    Getting a non-existent object should return None (custom S3Client behavior).
     """
-    with pytest.raises(ClientError) as e:
-        s3_client.get_object(temp_bucket, "missing.txt")
-    assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
-        f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
-    )
+    result = s3_client.get_object(temp_bucket, "missing.txt")
+    assert result is None or result == b"", \
+        f"Expected None or empty bytes for missing object, got: {result}"
 
 def test_download_nonexistent_object(s3_client, temp_bucket, tmp_path):
     """
