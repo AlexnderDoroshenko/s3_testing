@@ -1,5 +1,5 @@
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ParamValidationError
 
 
 # def test_delete_nonexistent_object(s3_client, temp_bucket):
@@ -65,8 +65,9 @@ def test_download_nonexistent_object(s3_client, temp_bucket, tmp_path):
 
 def test_create_bucket_invalid_name(s3_client):
     """
-    Attempt to create a bucket with an invalid name.
-    Expects a ClientError due to invalid bucket name.
+    Creating a bucket with an invalid name should fail locally (ParamValidationError).
     """
-    with pytest.raises(ClientError, match="InvalidBucketName|InvalidBucket"):
+    with pytest.raises(ParamValidationError) as e:
         s3_client.create_bucket("Invalid_Bucket_Name!")
+    assert "Invalid bucket name" in str(e.value), \
+        f"Unexpected error message: {e.value}"
