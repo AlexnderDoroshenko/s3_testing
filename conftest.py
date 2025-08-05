@@ -1,5 +1,5 @@
 import pytest
-from s3_client import S3Client
+from s3_testing import S3Client
 from os import environ
 from utils.s3_utils import cleanup_bucket
 
