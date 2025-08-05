@@ -2,16 +2,32 @@ import pytest
 from botocore.exceptions import ClientError
 
 
-def test_delete_nonexistent_object(s3_client, temp_bucket):
+# def test_delete_nonexistent_object(s3_client, temp_bucket):
+#     """
+#     Attempt to delete a non-existent object from S3.
+#     Expects a ClientError with NoSuchKey or 404 error code.
+#     """
+#     with pytest.raises(ClientError) as e:
+#         s3_client.delete_object(temp_bucket, "missing.txt")
+#     assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
+#         f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
+#     )
+
+def test_delete_nonexistent_object_idempotent(s3_client, temp_bucket):
     """
-    Attempt to delete a non-existent object from S3.
-    Expects a ClientError with NoSuchKey or 404 error code.
+    Deleting a non-existent object should be idempotent and not affect the bucket.
     """
-    with pytest.raises(ClientError) as e:
-        s3_client.delete_object(temp_bucket, "missing.txt")
-    assert e.value.response['Error']['Code'] in ["NoSuchKey", "404"], (
-        f"Expected error code 'NoSuchKey' or '404', got '{e.value.response['Error']['Code']}'"
-    )
+    # Create a bucket with no objects
+    initial_objects = s3_client.list_objects(temp_bucket)
+
+    # Delete missing object
+    s3_client.delete_object(temp_bucket, "missing.txt")
+
+    # List objects again
+    after_objects = s3_client.list_objects(temp_bucket)
+
+    assert initial_objects == after_objects, \
+        f"Bucket contents changed after deleting non-existent object: {after_objects}"
 
 def test_invalid_credentials(tmp_path):
     """
