@@ -62,13 +62,13 @@ jobs:
         with:
           name: pytest-report-${{ matrix.python-version }}
           path: report.html
-          retention-days: 5
+          retention-days: 3
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-${{ matrix.python-version }}
           path: coverage.xml
-          retention-days: 5
+          retention-days: 3
       - name: Upload coverage to Codecov
         if: matrix.python-version >= '3.11'
         uses: codecov/codecov-action@v4
